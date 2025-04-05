@@ -120,16 +120,15 @@ Name: anonymous
 Password: anonymous
 ```
 
-![anonymous-login](https://github.com/Z3R0x30/Z3R0x30/blob/main/HTB-LAME/images-lame/1.png)
-
+![](images-lame/1.png)
 
 I did got access using anonymous feature of the ftp, but it seems we cannot do much with it. As you can see in the provided screenshot that after running the *dir -a* command, I see not a single file or directory. It is a dead-end, let's look for something else. 
 
 #### FTP Vulnerabilities
 After receiving no gifts from our pretty anonymous feature of ftp, we must now shift to another approach. Our next step must be to find potential vulnerabilities that are linked with the **vsftpd 2.3.4** service. The service looks quite old, and *"aging is the source of all vulnerabilities"*. I began searching on google (always remember, google is your best friend!), and found some very interesting things. At first glance, it feels like we got our way inside.
 
-![[Pasted image 20250403231146.png]]
-![[Pasted image 20250403231155.png]]
+![](images-lame/2.png)
+![](images-lame/3.png)
 
 **Links:**
 1. [NIST CVE-2011-2523](https://nvd.nist.gov/vuln/detail/CVE-2011-2523)
@@ -141,11 +140,11 @@ I get the exact same exploit on metasploit framework also, and to find it I used
 
 It returned with a list of exploits available for vsftpd 2.3.4 service, and one of them can be performed through Metasploit framework, which makes the work of exploitation easy for us. Soon, I will also post a blog on how to perform the same exploit manually, follow my socials to stay tuned!
 
-![[4.png]]
+![](images-lame/4.png)
 
 After finding an exploit, I immediately ran to exploit it without wasting any time thinking I will get a root access. Unfortunately, it didn't ended well, the clouds of disappointment started forming and now I was just really feeling TOO LAME.
 
-![[5.png]]
+![](images-lame/5.png)
 
 Ahh!!! We managed to set all the options correct and still got the infamous line *Exploit completed, but no session was created.* Why? vsftpd 2.3.4 is vulnerable to this exploit, it should give us a reverse shell. Now, I started finding vulnerabilities in other services, because this is a dead-end. It is better to find another way in, rather than wasting your time in thinking why the exploit failed!
 
@@ -159,7 +158,7 @@ When you login to the ftp server using the command `ftp [IP]` and then you are p
 
 After facing 2 dead-ends in ftp enumeration, I started looking for vulnerabilities in OpenSSH and found nothing interesting, so I immediately shifted on Samba. If you are little aware, then smb and samba are kind of vulnerable services and looking at the Samba's version (Samba 3.0.20), I can say there are plenty of exploits available for it. I started with the obvious google search methodology.
 
-![[6.png]]
+![](images-lame/6.png)
 
 **Links:**
 1. [NIST CVE-2007-2447](https://nvd.nist.gov/vuln/detail/CVE-2007-2447)
@@ -169,7 +168,7 @@ Next step I performed is finding if the exploit is available in the Metasploit f
 
 `searchsploit Samba 3.0.20`
 
-![[7.png]]
+![](images-lame/7.png)
 
 And this gives an output that shows the exact same exploit available in metasploit framework, so this might be our ticket in. Let's explore and exploit it! I used the following commands to perform the exploit:
 
@@ -185,8 +184,8 @@ msf6> exploit
 
 In the options, I have set *RHOSTS* to the target IP and *LHOST* to my vpn IP. It is very important to set the LHOST properly, or else you will not get the connection or reverse shell.
 
-![[8.png]]
-![[9.png]]
+![](images-lame/8.png)
+![](images-lame/9.png)
 
 As you can review from the above images that we finally have achieved root access. Yay! Finally after so many dead-ends we are here now. The final demand of the machine is to get a user flag from the user makis and a root flag. So I found them using the following commands:
 
@@ -205,9 +204,9 @@ cat root.txt
 ```
 
 
-![[10.png]]
+![](images-lame/10.png)
 
-![[11.png]]
+![](images-lame/11.png)
 
 #### How this vulnerability works?
 
@@ -232,7 +231,7 @@ I performed the following command on the target system to look for listening por
 4. **-l:** Filters the output to show listening ports
 5. **-p:** This option shows the process ID (PID) and the name of the program that is using each socket
 
-![[12.png]]
+![](images-lame/12.png)
 
 On the above image, I have marked a specific port with red line. It is port 21, which we saw during the nmap scan as **vsftpd**, but here we can see that the PID and name shown is **5440 and xinetd**. Weird, right? We were able to access ftp when we tried anonymous login, but there is no vsftpd here, why? I had a slight doubt, that this service is a firewall and after some googling, I was confirmed that **xinetd** is a firewall, that uses things like TCP wrapper to avoid malicious connections on a port or service. When an organization is running a vulnerable port/service, but they cannot update it due to the dependencies of other things on it, they generally cover the port with a firewall service that will avoid malicious traffic coming at the port. Fortunately, for us we are already inside the target and hence we can use vsftpd's exploit from within. 
 
@@ -243,7 +242,7 @@ We found 3 known vulnerabilities while pwning the system, I will here also refer
 ### FTP anonymous login
 Anonymous login gave us nothing here, but many a times it can be dangerous. Best practice is to disable anonymous login from the configuration file of vsftpd or any other ftp service. I have attached an image below with a configuration file that do not allow anonymous login.
 
-![[14.png]]
+![](images-lame/14.png)
 
 
 As shown in the image, the configuration file has `anonymous_enable=NO` which will disable anonymous login over ftp service.
@@ -256,7 +255,7 @@ There was another well-known vulnerability in vsftpd 2.3.4 that we tried to expl
 
 This was the exploit that worked for us, and we were able to access the system without any issue. This is a version based vulnerability, unlike the FTP anonymous login where we had to change configuration file content to secure it, here it is recommended to upgrade Samba to version 2.0.24-r2 or higher to mitigate this vulnerability. 
 
-![[13.png]]
+![](images-lame/13.png)
 
 
 ## Conclusion
