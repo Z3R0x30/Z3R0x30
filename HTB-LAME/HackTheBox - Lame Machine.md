@@ -120,7 +120,8 @@ Name: anonymous
 Password: anonymous
 ```
 
-![[1.png]]
+![anonymous-login](https://github.com/Z3R0x30/Z3R0x30/blob/main/HTB-LAME/images-lame/1.png)
+
 
 I did got access using anonymous feature of the ftp, but it seems we cannot do much with it. As you can see in the provided screenshot that after running the *dir -a* command, I see not a single file or directory. It is a dead-end, let's look for something else. 
 
